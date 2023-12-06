@@ -11,8 +11,7 @@ const App = () => {
     { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
     { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
   ]);
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
+
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
@@ -26,18 +25,32 @@ const App = () => {
     localStorage.setItem('contacts', JSON.stringify(contacts));
   }, [contacts]);
 
-  const handleChange = e => {
-    const { name, value } = e.currentTarget;
-    if (name === 'name') {
-      setName(value);
-    } else if (name === 'number') {
-      setNumber(value);
+  const addContact = (name, number) => {
+    const newContact = {
+      id: nanoid(),
+      name,
+      number,
+    };
+
+    if (
+      contacts.some(
+        contact => contact.name.toLowerCase() === name.toLowerCase()
+      )
+    ) {
+      alert(`Contact with name '${name}' already exists.`);
+      return;
     }
+
+    setContacts(prevContacts => [...prevContacts, newContact]);
   };
 
   const handleFilterChange = e => {
     setFilter(e.target.value);
   };
+
+  const filteredContacts = contacts.filter(contact =>
+    contact.name.toLowerCase().includes(filter.toLowerCase())
+  );
 
   const handleDeleteContact = id => {
     setContacts(prevContacts =>
@@ -45,48 +58,15 @@ const App = () => {
     );
   };
 
-  const isNameAlreadyExists = nameToCheck => {
-    return contacts.some(contact => contact.name === nameToCheck);
-  };
-
-  const handleSubmit = e => {
-    e.preventDefault();
-
-    if (name.trim() === '') {
-      return;
-    }
-
-    if (isNameAlreadyExists(name)) {
-      alert(`Contact with name '${name}' already exists.`);
-      return;
-    }
-
-    const newContact = {
-      id: nanoid(),
-      name,
-      number,
-    };
-
-    setContacts(prevContacts => [...prevContacts, newContact]);
-    setName('');
-    setNumber('');
-  };
-
   return (
     <div>
       <h1>Phonebook</h1>
-      <ContactForm
-        submit={handleSubmit}
-        change={handleChange}
-        name={name}
-        number={number}
-      />
+      <ContactForm addContact={addContact} />
 
       <h2>Contacts</h2>
       <Filter filter={filter} change={handleFilterChange} />
       <ContactList
-        contacts={contacts}
-        filter={filter}
+        contacts={filteredContacts}
         onDeleteContact={handleDeleteContact}
       />
     </div>
